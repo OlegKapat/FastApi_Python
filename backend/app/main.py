@@ -1,9 +1,3 @@
-from fastapi import FastAPI
-import socket
+from app_factory import get_app
 
-app = FastAPI(
-    root_path="/api",
-)
-@app.get("/info")
-async def get_backend():
-    return ("Backend is running on host: " + socket.gethostname())
+app = get_app()
