@@ -28,6 +28,16 @@ services:
     hostname: backend2
     ports:
       - "12346:12321"
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - main_network
 
   documentation:
     image: squidfunk/mkdocs-material:latest
