@@ -15,7 +15,7 @@ class PostgresSettings(BaseSettings):
     PORT: int = 5432
 
     @property
-    def DATABASE_URL(self) -> str:
+    def DATABASE_ASYNC_URL(self) -> str:
         return f"postgresql+asyncpg://{self.PGUSER}:{self.PGPASSWORD}@{self.PGHOST}:{self.PORT}/{self.PGDATABASE}"
 
 

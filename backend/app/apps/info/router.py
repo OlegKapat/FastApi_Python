@@ -14,4 +14,4 @@ async def get_backend():
 @info_router.get("/database")
 async def get_database():
     """Get data from database"""
-    return {"Return from database_url": settings.DATABASE_URL}
+    return {"Return from database_url": settings.DATABASE_ASYNC_URL}
