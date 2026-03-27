@@ -37,10 +37,10 @@ class UserPasswordSchema(BaseModel):
 
 
 class BaseUserSchema(BaseModel):
-    username: Annotated[str, StringConstraints(pattern=r"^[0-9a-zA-Zа-яА-ЯїЇяЯєЄіІґҐ_.'\- ]+$",
-                                               strip_whitespace=True,
-                                               max_length=50,
-                                               min_length=3)] = Field(description="User name",
+    name: Annotated[str, StringConstraints(pattern=r"^[0-9a-zA-Zа-яА-ЯїЇяЯєЄіІґҐ_.'\- ]+$",
+                                           strip_whitespace=True,
+                                           max_length=50,
+                                           min_length=3)] = Field(description="Name",
                                                                       examples=["John Doe", "Jane Smith"])
     email: EmailStr = Field(description="User email", examples=["bomb@ukr.net"])
 
@@ -49,5 +49,8 @@ class UserRegistrationSchema(BaseUserSchema, UserPasswordSchema):
     pass
 
 
-class RegisteredUserSchema(BaseUserSchema, IdSchema):
+class RegisteredUserSchema(BaseUserSchema, IdSchema,UserPasswordSchema):
+    pass
+
+class ResponseUserSchema(BaseUserSchema, IdSchema):
     pass
