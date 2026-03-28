@@ -15,7 +15,8 @@ dependencies = [
     "alembic (>=1.18.4,<2.0.0)",
     "password-strength (>=0.0.3.post2,<0.0.4)",
     "passlib (>=1.7.4,<2.0.0)",
-    "bcrypt (<4.0)"
+    "bcrypt (<4.0)",
+    "scalar-fastapi (>=1.8.1,<2.0.0)"
 ]
 
 
