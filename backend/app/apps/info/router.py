@@ -5,8 +5,6 @@ from .schemas import BaseBackendInfoSchema,DatabaseInfoSchema
 
 info_router = APIRouter()
 
-
-
 @info_router.get("/backend")
 async def get_backend()->BaseBackendInfoSchema:
     """Get data from backend"""
