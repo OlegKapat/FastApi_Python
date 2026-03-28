@@ -13,6 +13,9 @@ class PostgresSettings(BaseSettings):
     PGUSER: str
     PGPASSWORD: str
     PORT: int = 5432
+    DATABASE_POOL_SIZE: int = 10
+    DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_POOL_RECYCLE: int = 1800
 
     @property
     def DATABASE_ASYNC_URL(self) -> str:
@@ -20,7 +23,7 @@ class PostgresSettings(BaseSettings):
 
 
 class Settings(CoreSettings, PostgresSettings):
-    pass
+    SENTRY_DSN: str
 
 
 @lru_cache(maxsize=None)
