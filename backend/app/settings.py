@@ -6,6 +6,12 @@ class CoreSettings(BaseSettings):
     APP_NAME: str = "FastAPI Application"
     DEBUG: bool = True
 
+class JWTSettings(BaseSettings):
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRES:int = 5
+    JWT_REFRESH_TOKEN_EXPIRES: int = 60
+
 
 class PostgresSettings(BaseSettings):
     PGHOST: str
@@ -22,7 +28,7 @@ class PostgresSettings(BaseSettings):
         return f"postgresql+asyncpg://{self.PGUSER}:{self.PGPASSWORD}@{self.PGHOST}:{self.PORT}/{self.PGDATABASE}"
 
 
-class Settings(CoreSettings, PostgresSettings):
+class Settings(CoreSettings, PostgresSettings, JWTSettings):
     SENTRY_DSN: str
 
 
