@@ -6,6 +6,9 @@ from apps.users.crud import user_manager
 from apps.users.models import User
 from .schemas import LoginResposeSchema
 from .password_handler import PasswordEncrypt
+from datetime import datetime, timedelta
+from uuid import uuid4
+import jwt
 
 
 class AuthHandler:
@@ -14,7 +17,6 @@ class AuthHandler:
         self.refresh_token = settings.JWT_REFRESH_TOKEN_EXPIRES
         self.jwt_algorithm = settings.JWT_ALGORITHM
         self.jwr_secret_key = settings.JWT_SECRET_KEY
-
 
     async def get_login_token(self, session: AsyncSession, request: OAuth2PasswordRequestForm) -> LoginResposeSchema:
         user: User | None = await user_manager.get(
@@ -28,8 +30,32 @@ class AuthHandler:
         is_valid_password = await PasswordEncrypt.get_password_verify_hash(request.password, user.hashed_password)
         if not is_valid_password:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
+        token_response = await self.generate_tokens(user)
+        return token_response
 
-        return LoginResposeSchema(access_token="sASadAD", refresh_token="SADAD", expires_in=10, token_type="Bearer")
+    async def generate_tokens(self, user: User) -> LoginResposeSchema:
+        access_token_payload = {
+            "sub": str(user.id),
+            "email": user.email,
+
+        }
+        access_token = await  self.generate_token(payload=access_token_payload, expire_minutes=self.access_token)
+        refresh_token_payload = {
+            "sub": str(user.id),
+            "email": user.email,
+            "key": uuid4().hex
+
+        }
+        refresh_token = await  self.generate_token(payload=refresh_token_payload, expire_minutes=self.refresh_token)
+        return LoginResposeSchema(access_token=access_token, refresh_token=refresh_token,
+                                  expires_in=self.access_token * 60,
+                                  token_type="Bearer")
+
+    async def generate_token(self, payload: dict, expire_minutes: int) -> str:
+        expire = datetime.now() + timedelta(minutes=expire_minutes)
+        payload.update({"exp": expire})
+        token = jwt.encode(payload, self.jwr_secret_key, algorithm=self.jwt_algorithm)
+        return token
 
 
 auth_handler = AuthHandler()
