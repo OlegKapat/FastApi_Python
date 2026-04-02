@@ -1,8 +1,10 @@
 from fastapi import APIRouter, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from .schemas import RegisteredUserSchema,ResponseUserSchema
+from .models import User
+from .schemas import RegisteredUserSchema, ResponseUserSchema
 from apps.core.dependencies import get_async_session
 from .crud import user_manager
+from apps.auth.dependencies import get_current_user
 
 router_users = APIRouter()
 
@@ -14,3 +16,6 @@ async def create_user(user: RegisteredUserSchema,
     return created_user
 
 
+@router_users.get("/user-info")
+async def get_my_info(user:User=Depends(get_current_user) ) -> RegisteredUserSchema:
+    return RegisteredUserSchema.model_validate(user)
