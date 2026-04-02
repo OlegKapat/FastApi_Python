@@ -57,5 +57,16 @@ class AuthHandler:
         token = jwt.encode(payload, self.jwr_secret_key, algorithm=self.jwt_algorithm)
         return token
 
+    async def decode_token(self, token: str) -> dict:
+        try:
+            payload = jwt.decode(token, self.jwr_secret_key, algorithms=self.jwt_algorithm)
+            payload["iat"] = datetime.fromtimestamp(payload["iat"])
+            payload["exp"] = datetime.fromtimestamp(payload["exp"])
+            return payload
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+
 
 auth_handler = AuthHandler()
