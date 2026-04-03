@@ -6,3 +6,4 @@ class User(BaseModel):
     name : Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str]
+    is_admin: Mapped[bool]=mapped_column(default=False,nullable=True)
