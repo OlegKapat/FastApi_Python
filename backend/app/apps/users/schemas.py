@@ -53,4 +53,4 @@ class RegisteredUserSchema(BaseUserSchema, IdSchema,UserPasswordSchema):
     model_config = ConfigDict(from_attributes=True)
 
 class ResponseUserSchema(BaseUserSchema, IdSchema):
-   pass
+    model_config = ConfigDict(from_attributes=True)

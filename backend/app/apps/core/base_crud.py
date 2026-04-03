@@ -26,7 +26,7 @@ class BaseCrudManagerl(ABC):
         finally:
             await session.close()
 
-    async def get(self, *, session: AsyncSession, field_value: Any,field:InstrumentedAttribute) -> Optional[BaseModel]:
+    async def get(self, session: AsyncSession, field_value: Any, field: InstrumentedAttribute) -> Optional[BaseModel]:
        query = select(self.model).filter(field == field_value)
        result = await session.execute(query)
        return result.scalar_one_or_none()

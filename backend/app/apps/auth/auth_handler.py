@@ -60,8 +60,9 @@ class AuthHandler:
     async def decode_token(self, token: str) -> dict:
         try:
             payload = jwt.decode(token, self.jwr_secret_key, algorithms=self.jwt_algorithm)
-            payload["iat"] = datetime.fromtimestamp(payload["iat"])
-            payload["exp"] = datetime.fromtimestamp(payload["exp"])
+            print(payload)
+            # payload["iat"] = datetime.fromtimestamp(payload["iat"] or 0)
+            # payload["exp"] = datetime.fromtimestamp(payload["exp"])
             return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
