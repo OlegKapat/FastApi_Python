@@ -1,4 +1,5 @@
-
+from typing import Callable
+from enum import StrEnum
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,8 +25,23 @@ async def get_current_user(token: str = Depends(SecurityHandler.oauth2_scheme),
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with given email not found")
     return user
 
+
 async def get_admin_user(user: User = Depends(get_current_user)) -> User:
     if user.is_admin:
         return user
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail="Admin user is required")
+
+
+def require_permision(required_permision: list[StrEnum]) -> Callable:
+    async def permission_dependency(user: User = Depends(get_current_user)) -> User:
+        if user.is_admin:
+            return user
+        user_permision = set(user.permissions)
+        required_permision_set: set[str] = {perm.value for perm in required_permision}
+        if required_permision_set.issubset(user_permision):
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Permissions {', '.join(required_permision_set)} required")
+
+    return permission_dependency
