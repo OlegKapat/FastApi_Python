@@ -8,6 +8,7 @@ from .schemas import LoginResposeSchema
 from .password_handler import PasswordEncrypt
 from datetime import datetime, timedelta
 from uuid import uuid4
+from apps.services.redis_service import redis_service
 import jwt
 
 
@@ -47,11 +48,18 @@ class AuthHandler:
 
         }
         refresh_token = await  self.generate_token(payload=refresh_token_payload, expire_minutes=self.refresh_token)
+
+        await redis_service.set_cash(
+            key=refresh_token_payload["key"],
+            value=user.id,
+            ttl=self.refresh_token * 60,
+        )
         return LoginResposeSchema(access_token=access_token, refresh_token=refresh_token,
                                   expires_in=self.access_token * 60,
                                   token_type="Bearer")
 
     async def generate_token(self, payload: dict, expire_minutes: int) -> str:
+        """Описує метод генерація токену"""
         expire = datetime.now() + timedelta(minutes=expire_minutes)
         payload.update({"exp": expire})
         token = jwt.encode(payload, self.jwr_secret_key, algorithm=self.jwt_algorithm)
@@ -68,6 +76,18 @@ class AuthHandler:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+
+    async def get_refresh_token_pair(self, refresh_token: str, session: AsyncSession) -> LoginResposeSchema:
+        payload = await self.decode_token(refresh_token)
+        user: User | None = await user_manager.get(
+            session=session,
+            field_value=int(payload["sub"]),
+            field=User.id,
+        )
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found")
+        token_response = await self.generate_tokens(user)
+        return token_response
 
 
 auth_handler = AuthHandler()

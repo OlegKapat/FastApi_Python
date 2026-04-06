@@ -12,6 +12,12 @@ class JWTSettings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRES:int = 5
     JWT_REFRESH_TOKEN_EXPIRES: int = 60
 
+class RedisSettings(BaseSettings):
+    REDIS_HOST:str
+    REDIS_PORT:int
+    REDIS_USERNAME:str
+    REDIS_PASSWORD:str
+    REDIS_DATABASE:str=0
 
 class PostgresSettings(BaseSettings):
     PGHOST: str
@@ -28,7 +34,7 @@ class PostgresSettings(BaseSettings):
         return f"postgresql+asyncpg://{self.PGUSER}:{self.PGPASSWORD}@{self.PGHOST}:{self.PORT}/{self.PGDATABASE}"
 
 
-class Settings(CoreSettings, PostgresSettings, JWTSettings):
+class Settings(CoreSettings, PostgresSettings, JWTSettings,RedisSettings):
     SENTRY_DSN: str
 
 
