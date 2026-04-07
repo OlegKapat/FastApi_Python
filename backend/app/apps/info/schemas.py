@@ -6,3 +6,10 @@ class BaseBackendInfoSchema(BaseModel):
 
 class DatabaseInfoSchema(BaseModel):
     database_url: str
+
+
+class RedisHealthSchema(BaseModel):
+    status: str = Field(examples=["ok", "down"])
+    healthy: bool
+    detail: str | None = None
+

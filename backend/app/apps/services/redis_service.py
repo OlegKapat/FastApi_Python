@@ -1,16 +1,13 @@
-from importlib import import_module
+
 from contextlib import asynccontextmanager
 import datetime as dt
-
+import redis.asyncio as redis
 from settings import settings
-
-# Dynamic import avoids static-analyzer false positives in some IDE setups.
-redis = import_module("redis.asyncio")
-
 
 class RedisService:
     def __init__(self):
-        self.redis = redis.Redis(
+        global redis
+        redis = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
             username=settings.REDIS_USERNAME,
@@ -23,7 +20,7 @@ class RedisService:
         try:
             yield self.redis
         finally:
-            await self.redis.close()
+             self.redis.close()
 
     async def set_cash(self, key: str, value: str | int, ttl: int = 60):
         async with self.get_redis_client() as _redis:

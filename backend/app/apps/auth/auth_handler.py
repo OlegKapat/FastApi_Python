@@ -49,11 +49,11 @@ class AuthHandler:
         }
         refresh_token = await  self.generate_token(payload=refresh_token_payload, expire_minutes=self.refresh_token)
 
-        await redis_service.set_cash(
-            key=refresh_token_payload["key"],
-            value=user.id,
-            ttl=self.refresh_token * 60,
-        )
+        # await redis_service.set_cash(
+        #     key=refresh_token_payload["key"],
+        #     value=user.id,
+        #     ttl=self.refresh_token * 60,
+        # )
         return LoginResposeSchema(access_token=access_token, refresh_token=refresh_token,
                                   expires_in=self.access_token * 60,
                                   token_type="Bearer")
@@ -79,6 +79,11 @@ class AuthHandler:
 
     async def get_refresh_token_pair(self, refresh_token: str, session: AsyncSession) -> LoginResposeSchema:
         payload = await self.decode_token(refresh_token)
+        stored_refresh = await redis_service.get_cash(payload["key"])
+        if not stored_refresh:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token was user already logged in")
+
+        await redis_service.delete_cash(refresh_token)
         user: User | None = await user_manager.get(
             session=session,
             field_value=int(payload["sub"]),
