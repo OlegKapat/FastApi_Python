@@ -3,6 +3,7 @@ from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy import String,text
 from sqlalchemy.dialects.postgresql import ARRAY
 from .constants import UserPermisionEnum
+import datetime as dt
 
 
 class User(BaseModel):
@@ -12,3 +13,4 @@ class User(BaseModel):
     is_admin: Mapped[bool] = mapped_column(default=False, nullable=True)
     permissions: Mapped[list[str]] = mapped_column(ARRAY(String), default=lambda: [UserPermisionEnum.CAN_SELF_DELETE],
                                                    nullable=False,server_default=text("'{CAN_SELF_DELETE}'::text[]"))
+    use_token_since: Mapped[dt.datetime] = mapped_column(nullable=True)

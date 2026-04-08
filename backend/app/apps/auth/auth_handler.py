@@ -6,10 +6,10 @@ from apps.users.crud import user_manager
 from apps.users.models import User
 from .schemas import LoginResposeSchema
 from .password_handler import PasswordEncrypt
-from datetime import datetime, timedelta
 from uuid import uuid4
 from apps.services.redis_service import redis_service
 import jwt
+import datetime as dt
 
 
 class AuthHandler:
@@ -60,16 +60,16 @@ class AuthHandler:
 
     async def generate_token(self, payload: dict, expire_minutes: int) -> str:
         """Описує метод генерація токену"""
-        expire = datetime.now() + timedelta(minutes=expire_minutes)
-        payload.update({"exp": expire})
+        expire = dt.datetime.now() + dt.timedelta(minutes=expire_minutes)
+        payload.update({"exp": expire,"iat":dt.datetime.now()})
         token = jwt.encode(payload, self.jwr_secret_key, algorithm=self.jwt_algorithm)
         return token
 
     async def decode_token(self, token: str) -> dict:
         try:
             payload = jwt.decode(token, self.jwr_secret_key, algorithms=self.jwt_algorithm)
-            print(payload)
-            # payload["iat"] = datetime.fromtimestamp(payload["iat"] or 0)
+            print("Payload", payload)
+            payload["iat"] = dt.datetime.fromtimestamp(payload["iat"] or 0)
             # payload["exp"] = datetime.fromtimestamp(payload["exp"])
             return payload
         except jwt.ExpiredSignatureError:
@@ -79,6 +79,9 @@ class AuthHandler:
 
     async def get_refresh_token_pair(self, refresh_token: str, session: AsyncSession) -> LoginResposeSchema:
         payload = await self.decode_token(refresh_token)
+        token_key = payload.get("key")
+        if not token_key:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token was provided")
         stored_refresh = await redis_service.get_cash(payload["key"])
         if not stored_refresh:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token was user already logged in")
@@ -89,6 +92,9 @@ class AuthHandler:
             field_value=int(payload["sub"]),
             field=User.id,
         )
+        if user.use_token_since and user.use_token_since > payload["iat"]:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User forced logout")
+
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found")
         token_response = await self.generate_tokens(user)

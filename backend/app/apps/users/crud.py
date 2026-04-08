@@ -6,6 +6,7 @@ from apps.auth.password_handler import PasswordEncrypt
 from fastapi import HTTPException, status
 
 
+
 class UserCrudManager(BaseCrudManagerl):
     def __init__(self):
         self.model = User
@@ -23,6 +24,7 @@ class UserCrudManager(BaseCrudManagerl):
             hashed_password=hashed_password,
             name=new_user.name,
         )
+
 
 
 user_manager = UserCrudManager()
