@@ -1,5 +1,5 @@
 from typing import Annotated
-from pydantic import BaseModel, EmailStr, Field, StringConstraints, field_validator
+from pydantic import BaseModel, EmailStr, Field, StringConstraints, field_validator,ConfigDict
 from password_strength import PasswordPolicy
 from apps.core.schemas import IdSchema
 
@@ -50,7 +50,7 @@ class UserRegistrationSchema(BaseUserSchema, UserPasswordSchema):
 
 
 class RegisteredUserSchema(BaseUserSchema, IdSchema,UserPasswordSchema):
-    pass
+    model_config = ConfigDict(from_attributes=True)
 
 class ResponseUserSchema(BaseUserSchema, IdSchema):
-    pass
+    model_config = ConfigDict(from_attributes=True)
