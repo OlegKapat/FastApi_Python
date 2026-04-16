@@ -1,5 +1,4 @@
 from datetime import datetime
-from logging import root
 
 from sqlalchemy.orm import DeclarativeBase, Mapper, mapped_column, declared_attr, Mapped
 from sqlalchemy.ext.asyncio import AsyncAttrs, create_async_engine, async_sessionmaker,AsyncSession
