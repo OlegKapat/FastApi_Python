@@ -8,7 +8,6 @@ from fastapi.responses import JSONResponse
 from apps.services.sentry_service import init_sentry
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
 from fastapi import FastAPI
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
