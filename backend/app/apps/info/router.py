@@ -4,6 +4,8 @@ from settings import settings
 from apps.services.redis_service import redis_service
 from .schemas import BaseBackendInfoSchema, DatabaseInfoSchema, RedisHealthSchema
 import logging
+from asyncio import sleep
+from fastapi_cache.decorator import cache
 
 info_router = APIRouter()
 
@@ -35,3 +37,8 @@ async def get_redis_health() -> RedisHealthSchema:
         raise HTTPException(status_code=503, detail=f"Redis unavailable: {detail}")
     return RedisHealthSchema(status="ok", healthy=True)
 
+@info_router.get("/heavy-endpoint")
+@cache(expire=30, namespace="params")
+async def get_heavy_endpoint(some_params:int)->dict:
+    await  sleep(5)  # Simulate a heavy operation
+    return {"message": f"Heavy operation completed with params: {some_params * 2}"}
