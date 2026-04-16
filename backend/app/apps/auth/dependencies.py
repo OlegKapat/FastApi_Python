@@ -20,6 +20,8 @@ async def get_current_user(token: str = Depends(SecurityHandler.oauth2_scheme),
     # Then you would query your database to get the user associated with the token
     # If the token is invalid or expired, you would raise an HTTPException
     payload = await auth_handler.decode_token(token)
+    if payload.get("key"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token was given")
     user: User | None = await user_manager.get(session=session, field_value=int(payload["sub"]), field=User.id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with given email not found")

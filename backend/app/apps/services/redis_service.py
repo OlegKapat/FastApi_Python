@@ -1,8 +1,12 @@
 
 from contextlib import asynccontextmanager
 import datetime as dt
-import redis.asyncio as redis
 from settings import settings
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+import redis.asyncio as redis
+
+
 
 class RedisService:
     def __init__(self):
@@ -13,14 +17,16 @@ class RedisService:
             username=settings.REDIS_USERNAME,
             password=settings.REDIS_PASSWORD,
             db=settings.REDIS_DATABASE,
-            decode_responses=True,
+            decode_responses=False,
         )
+
     @asynccontextmanager
     async def get_redis_client(self):
         try:
             yield self.redis
         finally:
-             self.redis.close()
+            pass
+             # self.redis.close()
 
     async def set_cash(self, key: str, value: str | int, ttl: int = 60):
         async with self.get_redis_client() as _redis:
