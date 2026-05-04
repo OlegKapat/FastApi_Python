@@ -11,6 +11,7 @@ from .crud import Category, category_manager
 from .schemas import (
     NewCategory,
     PaginatorSavedCategoryResponseSchema,
+    PatchCategorySchema,
     SavedCategorySchema,
 )
 
@@ -67,3 +68,30 @@ async def get_categories(
         params=params,
     )
     return result
+
+
+@router_categories.patch(
+    "/{id}",
+    dependencies=[Depends(require_permision([UserPermisionEnum.CAN_CREATE_CATERGORY]))],
+)
+async def update_category(
+    patch_data: PatchCategorySchema,
+    category_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+) -> SavedCategorySchema:
+    update_category = await category_manager.patch(
+        instance_id=category_id, data_to_patch=patch_data, session=session
+    )
+    return update_category
+
+
+@router_categories.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_permision([UserPermisionEnum.CAN_CREATE_CATERGORY]))],
+)
+async def delete_category(
+    category_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    await category_manager.delete_item(instance_id=category_id, session=session)
