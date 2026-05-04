@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from apps.core.base_models import BaseModel
 from fastapi import HTTPException, status
-from sqlalchemy import and_, asc, desc, func, or_, select, update
+from sqlalchemy import and_, asc, delete, desc, exists, func, or_, select, update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
@@ -76,6 +76,17 @@ class BaseCrudManagerl(ABC):
         if not data_for_updating:
             return item
 
+        optimistic_offline_lock_version = getattr(item, "version", None)
+        if optimistic_offline_lock_version is not None:
+            if optimistic_offline_lock_version != getattr(
+                data_to_patch, "version", None
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"{self.model.__name__} with id {instance_id} has been modified by another process",
+                )
+            data_for_updating["version"] = optimistic_offline_lock_version + 1
+
         query = (
             update(self.model)
             .where(self.model.id == instance_id)
@@ -128,3 +139,24 @@ class BaseCrudManagerl(ABC):
             limit=params.limit,
             pages=ceil(total_count / params.limit),
         )
+
+    async def item_exist(
+        self, *, session: AsyncSession, field_value: Any, field: InstrumentedAttribute
+    ) -> bool:
+        query = select(exists().where(field == field_value))
+        result = await session.execute(query)
+        return result.scalar()
+
+    async def delete_item(self, instance_id: int, session: AsyncSession) -> None:
+        is_item_exist = await self.item_exist(
+            session=session, field=self.model.id, field_value=instance_id
+        )
+        if not is_item_exist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"{self.model.__name__} with id {instance_id} not found",
+            )
+
+        query = delete(self.model).where(self.model.id == instance_id)
+        await session.execute(query)
+        await session.commit()
