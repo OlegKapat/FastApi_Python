@@ -1,5 +1,5 @@
 from apps.core.base_models import BaseModel, UpdetetAtMixin, UUIDMixin
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,3 +28,34 @@ class Product(UpdetetAtMixin, UUIDMixin, BaseModel):
 
     def __str__(self) -> str:
         return f"<Product {self.title} - #{self.id}, current price {self.price}>"
+
+
+class Order(UpdetetAtMixin, UUIDMixin, BaseModel):
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    is_closed: Mapped[bool] = mapped_column(default=False)
+
+    user = relationship("User", back_populates="orders")
+    product = relationship("OrderProduct", back_populates="order", lazy="selectin")
+
+    @property
+    def cost(self) -> float:
+        return sum([product.total for product in self.products])
+
+
+class OrderProduct(UpdetetAtMixin, UUIDMixin, BaseModel):
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"))
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="RESTRICT")
+    )
+    price: Mapped[float] = mapped_column(default=0.0)
+    quantity: Mapped[int] = mapped_column(default=0)
+
+    order = relationship("Order", back_populates="products", lazy="selectin")
+
+    __table_args__ = (
+        UniqueConstraint("order_id", "product_id", name="unique_product_order"),
+    )
+
+    @property
+    def total(self):
+        return self.quantity * self.price
