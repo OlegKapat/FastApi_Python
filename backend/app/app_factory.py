@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from apps.auth.router import router_auth
 from apps.info.router import info_router
-from apps.products.router import router_categories
+from apps.products.router import router_categories, router_product
 from apps.services.redis_service import redis_service
 from apps.services.sentry_service import init_sentry
 from apps.users.router import router_users
@@ -35,9 +35,8 @@ def get_app() -> FastAPI:
         lifespan=lifespan,
     )
     app.include_router(router_users, prefix="/users", tags=["users"])
-    app.include_router(
-        router_categories, prefix="/categories", tags=["products", "categories"]
-    )
+    app.include_router(router_categories, prefix="/categories", tags=["categories"])
+    app.include_router(router_product, prefix="/products", tags=["products"])
     app.include_router(router_auth, prefix="/auth", tags=["auth"])
     if settings.DEBUG:
         app.include_router(info_router, prefix="/info", tags=["info"])

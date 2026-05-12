@@ -1,4 +1,4 @@
-import asyncio
+from collections.abc import Sequence
 from contextlib import asynccontextmanager
 from uuid import UUID
 
@@ -24,19 +24,25 @@ class S3Storage:
             yield s3_client
 
     async def upload_file_to_s3(
-        self, files: UploadFile, uuid_obj: UUID | str, root_dir: str = "productImages"
+        self,
+        files: UploadFile | list[UploadFile],
+        uuid_obj: UUID | str,
+        root_dir: str = "productImages",
+        return_first: bool = False,
     ):
-        if isinstance(files, UploadFile):
+        # Normalize to list in a runtime-safe way
+        if not isinstance(files, Sequence) or isinstance(files, (str, bytes)):
             files = [files]
-        task = []
         urls = []
         async with self.get_s3_client() as s3_client:
-            files.seek(0)
-            object_name = f"{root_dir}/{str(uuid_obj)}/{files.filename}"
-            await s3_client.upload_fileobj(files, self.bucket_name, object_name)
-            # Формування url Тільки для сервісу https://leapcell.io
-            urls.append(f"{settings.S3_PUBLIC_URL}/{object_name}")
-            await asyncio.gather(*task)
+            for file in files:
+                await file.seek(0)
+                object_name = f"{root_dir}/{str(uuid_obj)}/{file.filename}"
+                await s3_client.upload_fileobj(file.file, self.bucket_name, object_name)
+                urls.append(f"{settings.S3_PUBLIC_URL}/{object_name}")
+
+            if return_first:
+                return urls[0] if urls else None
 
         return urls
 

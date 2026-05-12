@@ -28,7 +28,8 @@ class BaseCrudManagerl(ABC):
         except Exception as e:
             await session.rollback()
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error has occurred while creating {self.model} instance with {kwargs}, {e=}",
             )
         finally:
             await session.close()
