@@ -23,6 +23,7 @@ from .crud import Category, category_manager, product_manager
 from .schemas import (
     NewCategory,
     PaginatorSavedCategoryResponseSchema,
+    PaginatorSavedProductResponseSchema,
     PatchCategorySchema,
     SavedCategorySchema,
     SavedProductSchema,
@@ -166,3 +167,33 @@ async def create_product(
         session=session,
     )
     return SavedProductSchema.from_orm(created_product)
+
+
+@router_product.get("/{id}", response_model=SavedProductSchema)
+async def get_product_by_id(
+    product_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+) -> SavedProductSchema:
+    saved_product = await product_manager.get(
+        field_value=product_id, field=Product.id, session=session
+    )
+    if not saved_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with id {product_id} not found",
+        )
+    return saved_product
+
+
+@router_product.get("/")
+async def get_product(
+    params: Annotated[SearchParamSchema, Depends()],
+    session: AsyncSession = Depends(get_async_session),
+) -> PaginatorSavedProductResponseSchema:
+    result = await product_manager.get_items_pagineted(
+        session=session,
+        search_fields=[Product.title, Product.description],
+        targeted_shema=SavedProductSchema,
+        params=params,
+    )
+    return result
