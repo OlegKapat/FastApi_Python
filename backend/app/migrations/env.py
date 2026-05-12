@@ -7,6 +7,7 @@ from alembic import context
 from settings import settings
 from apps.core.base_models import BaseModel
 from apps.users.models import User
+from apps.products.models import Category,Product
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

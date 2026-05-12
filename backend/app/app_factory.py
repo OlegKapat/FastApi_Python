@@ -1,18 +1,18 @@
-from fastapi import FastAPI, Request
-from settings import settings
-from apps.info.router import info_router
-from apps.users.router import router_users
-from apps.auth.router import router_auth
-from scalar_fastapi import get_scalar_api_reference
-from fastapi.responses import JSONResponse
-from apps.services.sentry_service import init_sentry
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
-from fastapi import FastAPI
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+
+from apps.auth.router import router_auth
+from apps.info.router import info_router
+from apps.products.router import router_categories, router_product
 from apps.services.redis_service import redis_service
+from apps.services.sentry_service import init_sentry
+from apps.users.router import router_users
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from scalar_fastapi import get_scalar_api_reference
+from settings import settings
 
 init_sentry()
 
@@ -27,9 +27,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 def get_app() -> FastAPI:
-    app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG, root_path="/api", default_response_class=JSONResponse,
-                  lifespan=lifespan)
+    app = FastAPI(
+        title=settings.APP_NAME,
+        debug=settings.DEBUG,
+        root_path="/api",
+        default_response_class=JSONResponse,
+        lifespan=lifespan,
+    )
     app.include_router(router_users, prefix="/users", tags=["users"])
+    app.include_router(router_categories, prefix="/categories", tags=["categories"])
+    app.include_router(router_product, prefix="/products", tags=["products"])
     app.include_router(router_auth, prefix="/auth", tags=["auth"])
     if settings.DEBUG:
         app.include_router(info_router, prefix="/info", tags=["info"])
