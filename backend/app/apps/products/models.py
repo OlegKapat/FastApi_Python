@@ -25,6 +25,9 @@ class Product(UpdetetAtMixin, UUIDMixin, BaseModel):
         ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False
     )
     category = relationship("Category", back_populates="products")
+    order_products = relationship(
+        "OrderProduct", back_populates="product", lazy="selectin"
+    )
 
     def __str__(self) -> str:
         return f"<Product {self.title} - #{self.id}, current price {self.price}>"
@@ -35,7 +38,7 @@ class Order(UpdetetAtMixin, UUIDMixin, BaseModel):
     is_closed: Mapped[bool] = mapped_column(default=False)
 
     user = relationship("User", back_populates="orders")
-    product = relationship("OrderProduct", back_populates="order", lazy="selectin")
+    products = relationship("OrderProduct", back_populates="order", lazy="selectin")
 
     @property
     def cost(self) -> float:
@@ -51,6 +54,7 @@ class OrderProduct(UpdetetAtMixin, UUIDMixin, BaseModel):
     quantity: Mapped[int] = mapped_column(default=0)
 
     order = relationship("Order", back_populates="products", lazy="selectin")
+    product = relationship("Product", back_populates="order_products", lazy="selectin")
 
     __table_args__ = (
         UniqueConstraint("order_id", "product_id", name="unique_product_order"),
