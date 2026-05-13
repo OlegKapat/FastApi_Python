@@ -1,5 +1,5 @@
 from apps.core.base_crud import BaseCrudManagerl
-from apps.products.models import Category, Product
+from apps.products.models import Category, Order, Product
 
 
 class CategoryCrudManager(BaseCrudManagerl):
@@ -12,5 +12,11 @@ class ProductCrudManager(BaseCrudManagerl):
         self.model = Product
 
 
+class OrderCrudManager(BaseCrudManagerl):
+    def __init__(self):
+        self.model = Order
+
+
 category_manager = CategoryCrudManager()
 product_manager = ProductCrudManager()
+order_manager = OrderCrudManager()

@@ -1,12 +1,13 @@
 import uuid
 from typing import Annotated
 
-from apps.auth.dependencies import require_permision
+from apps.auth.dependencies import get_current_user, require_permision
 from apps.core.dependencies import get_async_session
 from apps.core.schemas import SearchParamSchema
 from apps.products.models import Product
 from apps.storage.s3 import s3_storage
 from apps.users.constants import UserPermisionEnum
+from apps.users.models import User
 from fastapi import (
     APIRouter,
     Depends,
@@ -19,9 +20,10 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .crud import Category, category_manager, product_manager
+from .crud import Category, category_manager, order_manager, product_manager
 from .schemas import (
     NewCategory,
+    OrderSchema,
     PaginatorSavedCategoryResponseSchema,
     PaginatorSavedProductResponseSchema,
     PatchCategorySchema,
@@ -31,6 +33,7 @@ from .schemas import (
 
 router_categories = APIRouter()
 router_product = APIRouter()
+router_orders = APIRouter()
 
 
 @router_categories.post(
@@ -197,3 +200,15 @@ async def get_product(
         params=params,
     )
     return result
+
+
+@router_orders.get("/")
+async def get_orders(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> OrderSchema:
+    orders = await order_manager.get_or_create_order(
+        session=session, user_id=user.id, is_closed=False
+    )
+    response = OrderSchema.from_orm(orders)
+    return response

@@ -5,7 +5,7 @@ from typing import Any, Optional
 from apps.core.base_models import BaseModel
 from fastapi import HTTPException, status
 from sqlalchemy import and_, asc, delete, desc, exists, func, or_, select, update
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 
@@ -161,3 +161,26 @@ class BaseCrudManagerl(ABC):
         query = delete(self.model).where(self.model.id == instance_id)
         await session.execute(query)
         await session.commit()
+
+    async def get_or_create_order(
+        self,
+        session: AsyncSession,
+        defaults: dict = None,
+        **kwargs,
+    ) -> Optional[BaseModel]:
+        query = select(
+            self.model,
+        ).filter_by(**kwargs)
+        result = await session.execute(query)
+        instance = result.scalars().one_or_none()
+        if instance:
+            return instance
+        else:
+            instance = self.model(**kwargs, **(defaults or {}))
+        session.add(instance)
+        try:
+            await session.commit()
+            await session.refresh(instance)
+            return instance
+        except IntegrityError:
+            await session.rollback()
