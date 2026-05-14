@@ -34,6 +34,10 @@ class PostgresSettings(BaseSettings):
     DATABASE_POOL_RECYCLE: int = 1800
 
 
+class PaymentSettings(BaseSettings):
+    STRIPE_SECRET_KEY: str
+
+
 class S3Settings(BaseSettings):
     S3_ENDPOINT_URL: str
     S3_ACCESS_KEY_ID: str
@@ -47,7 +51,14 @@ class S3Settings(BaseSettings):
         return f"postgresql+asyncpg://{self.PGUSER}:{self.PGPASSWORD}@{self.PGHOST}:{self.PORT}/{self.PGDATABASE}"
 
 
-class Settings(CoreSettings, PostgresSettings, JWTSettings, RedisSettings, S3Settings):
+class Settings(
+    CoreSettings,
+    PostgresSettings,
+    JWTSettings,
+    RedisSettings,
+    S3Settings,
+    PaymentSettings,
+):
     SENTRY_DSN: str
 
 

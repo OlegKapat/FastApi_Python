@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from apps.auth.router import router_auth
 from apps.info.router import info_router
+from apps.payments.router import payment_router
 from apps.products.router import router_categories, router_orders, router_product
 from apps.services.redis_service import redis_service
 from apps.services.sentry_service import init_sentry
@@ -39,6 +40,7 @@ def get_app() -> FastAPI:
     app.include_router(router_product, prefix="/products", tags=["products"])
     app.include_router(router_orders, prefix="/orders", tags=["orders"])
     app.include_router(router_auth, prefix="/auth", tags=["auth"])
+    app.include_router(payment_router, prefix="/payments", tags=["payments"])
     if settings.DEBUG:
         app.include_router(info_router, prefix="/info", tags=["info"])
 
