@@ -9,6 +9,7 @@ from apps.services.redis_service import redis_service
 from apps.services.sentry_service import init_sentry
 from apps.users.router import router_users
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -34,6 +35,13 @@ def get_app() -> FastAPI:
         root_path="/api",
         default_response_class=JSONResponse,
         lifespan=lifespan,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+        allow_credentials=True,
     )
     app.include_router(router_users, prefix="/users", tags=["users"])
     app.include_router(router_categories, prefix="/categories", tags=["categories"])
